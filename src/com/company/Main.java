@@ -2,6 +2,8 @@ package com.company;
 
 public class Main {
 
+    volatile static int i=0; // если не сделать её volatile
+
     public static void main(String[] args) throws Exception {
         Resource resource = new Resource(); //
         resource.i=5;
@@ -66,12 +68,15 @@ class Resource{
     public static void chengJ(){ // никогда не смешивать статичекую и обычную синхронизацию
         System.out.println(Resource.j);
         synchronized (Resource.class){ // не даст доступ другим потокам, пока не выполнится, тот который начал работу
-            int j = Resource.j;
-            if (Thread.currentThread().getName().equals("one")){ // если поток one
-                Thread.yield(); // дать возможность запустится другому потоку
+            while (Main.i<5){ // если Main.i не сделать volatile, то это место будет закешированно, и Main.i всегда будет =0
+                int j = Resource.j;
+                if (Thread.currentThread().getName().equals("one")){ // если поток one
+                    Thread.yield(); // дать возможность запустится другому потоку
+                }
+                j++;
+                Resource.j= j;
+                Main.i++;
             }
-            j++;
-            Resource.j= j;
         }
     }
 
